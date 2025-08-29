@@ -344,20 +344,58 @@ class CopyrightDetector:
         import sys
         sys.path.append(music_embeddings_path)
         
-        from src.embeddings import AudioEmbeddingExtractor
-        extractor = AudioEmbeddingExtractor(model_name=model_name)
-        query_embedding = extractor.extract_embeddings(audio_file)
+        try:
+            from src.embeddings import AudioEmbeddingExtractor
+            
+            # Extract embeddings from the query audio file
+            extractor = AudioEmbeddingExtractor(model_name=model_name)
+            query_embedding = extractor.extract_embeddings(audio_file)
+            
+            # If multiple embeddings are returned, use the mean
+            if query_embedding.ndim > 1 and query_embedding.shape[0] > 1:
+                query_embedding = np.mean(query_embedding, axis=0)
+            
+        except ImportError as e:
+            logger.error(f"Failed to import music embeddings module: {e}")
+            raise ImportError(
+                "Music embeddings module not found. Make sure it's installed and accessible. "
+                "This feature requires the music-embeddings project to be integrated."
+            )
         
-        if query_embedding.ndim > 1 and query_embedding.shape[0] > 1:
-            query_embedding = np.mean(query_embedding, axis=0)
+        return self._analyze_embedding(query_embedding, similar_tracks)
+    
+    def analyze_embedding(self, query_embedding: np.ndarray) -> Dict:
+        """
+        Perform comprehensive copyright analysis on an embedding directly.
         
+        Args:
+            query_embedding (np.ndarray): The audio embedding to analyze
+            
+        Returns:
+            Dict: Comprehensive copyright analysis results
+        """
+        # Find similar tracks using the embedding directly
+        similar_tracks = self.searcher.search_similar(query_embedding, k=20)
+        
+        return self._analyze_embedding(query_embedding, similar_tracks)
+    
+    def _analyze_embedding(self, query_embedding: np.ndarray, similar_tracks: List[Dict]) -> Dict:
+        """
+        Internal method to perform copyright analysis on an embedding.
+        
+        Args:
+            query_embedding (np.ndarray): The audio embedding to analyze
+            similar_tracks (List[Dict]): List of similar tracks found
+            
+        Returns:
+            Dict: Comprehensive copyright analysis results
+        """
         # Detect copyright matches
         copyright_matches = self.searcher.detect_copyright_matches(query_embedding)
         
         # Analyze results
         analysis = {
-            'query_file': audio_file,
-            'model_used': model_name,
+            'query_embedding_shape': query_embedding.shape,
             'total_similar_tracks': len(similar_tracks),
             'total_copyright_matches': len(copyright_matches),
             'highest_similarity': max([t['similarity_score'] for t in similar_tracks]) if similar_tracks else 0,

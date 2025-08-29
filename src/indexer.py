@@ -56,7 +56,8 @@ class VectorIndexer:
         elif self.index_type == "IVF":
             # IVF index for larger datasets
             quantizer = faiss.IndexFlatL2(self.dimension)
-            self.index = faiss.IndexIVFFlat(quantizer, self.dimension, 100)  # 100 centroids
+            # Adaptive number of centroids - default to 100, but can be adjusted during training
+            self.index = faiss.IndexIVFFlat(quantizer, self.dimension, 100)  # Will be adjusted in train_index
         elif self.index_type == "HNSW":
             # HNSW index for fast approximate search
             self.index = faiss.IndexHNSWFlat(self.dimension, 32)
@@ -75,6 +76,19 @@ class VectorIndexer:
         """
         if not self.is_trained and hasattr(self.index, 'train'):
             logger.info(f"Training index with {len(training_vectors)} vectors...")
+            
+            # For IVF indexes, adjust the number of centroids if needed
+            if self.index_type == "IVF" and hasattr(self.index, 'nlist'):
+                current_nlist = self.index.nlist
+                min_required = training_vectors.shape[0]
+                
+                if min_required < current_nlist:
+                    # Recreate index with appropriate number of centroids
+                    new_nlist = max(1, min_required // 2)  # Use half the number of vectors
+                    quantizer = faiss.IndexFlatL2(self.dimension)
+                    self.index = faiss.IndexIVFFlat(quantizer, self.dimension, new_nlist)
+                    logger.info(f"Adjusted IVF centroids from {current_nlist} to {new_nlist}")
+            
             self.index.train(training_vectors.astype(np.float32))
             self.is_trained = True
             logger.info("Index training completed")
