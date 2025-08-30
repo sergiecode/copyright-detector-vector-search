@@ -4,7 +4,6 @@
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![FAISS](https://img.shields.io/badge/FAISS-GPU%2FCPU-green.svg)](https://github.com/facebookresearch/faiss)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Created by **[Sergie Code](https://github.com/sergiecode)** - Software Engineer & YouTube Programming Educator  
 **🎓 AI Tools for Musicians Series**
@@ -561,12 +560,6 @@ class CopyrightDetector:
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
 ## 🙏 Acknowledgments
 
 - **FAISS Team** - For the incredible vector search library
@@ -868,10 +861,6 @@ def create_sharded_index(embeddings, shard_size=100000):
 4. Run tests: `pytest tests/`
 5. Submit a pull request
 
-## 📄 License
-
-This project is part of the "AI Tools for Musicians" educational series by Sergie Code.
-
 ## 👨‍💻 About the Author
 
 **Sergie Code** is a Software Engineer and YouTube Programming Educator specializing in AI tools for creative industries. This project is part of his educational series teaching musicians how to leverage AI technology.
@@ -915,3 +904,4 @@ If you encounter issues or have questions:
 **Happy Music Analysis! 🎵**
 
 *Built with ❤️ by Sergie Code for the music and AI community*
+
